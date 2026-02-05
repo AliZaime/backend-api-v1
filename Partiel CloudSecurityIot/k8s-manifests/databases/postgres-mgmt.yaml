@@ -1,0 +1,63 @@
+apiVersion: v1
+kind: Service
+metadata:
+  name: mgmt-db
+spec:
+  ports:
+    - port: 5432
+  selector:
+    app: mgmt-db
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: mgmt-db
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: mgmt-db
+  template:
+    metadata:
+      labels:
+        app: mgmt-db
+    spec:
+      containers:
+        - name: postgres
+          image: postgres:alpine
+          env:
+            - name: POSTGRES_USER
+              valueFrom:
+                configMapKeyRef:
+                  name: app-config
+                  key: POSTGRES_USER
+            - name: POSTGRES_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: app-secrets
+                  key: POSTGRES_PASSWORD
+            - name: POSTGRES_DB
+              valueFrom:
+                configMapKeyRef:
+                  name: app-config
+                  key: MANAGEMENT_DB_NAME
+          ports:
+            - containerPort: 5432
+          volumeMounts:
+            - name: mgmt-db-storage
+              mountPath: /var/lib/postgresql/data
+      volumes:
+        - name: mgmt-db-storage
+          persistentVolumeClaim:
+            claimName: mgmt-db-pvc
+---
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: mgmt-db-pvc
+spec:
+  accessModes:
+    - ReadWriteOnce
+  resources:
+    requests:
+      storage: 1Gi

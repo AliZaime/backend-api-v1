@@ -1,0 +1,82 @@
+version: '3.8'
+
+services:
+  # Base de données PostgreSQL
+  postgres:
+    image: postgres:15-alpine
+    container_name: postgres_device_management
+    environment:
+      POSTGRES_USER: user
+      POSTGRES_PASSWORD: password
+      POSTGRES_DB: cloud_security_iot_devices
+    ports:
+      - "5433:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+      - ./init.sql:/docker-entrypoint-initdb.d/init.sql
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U user"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+    networks:
+      - iot_net
+
+  # Device-Management-v2
+  device_management:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: device_management_v2
+    environment:
+      DATABASE_URL: postgresql://user:password@postgres:5432/cloud_security_iot_devices
+      MQTT_BROKER_HOST: mosquitto_broker
+      MQTT_BROKER_PORT: 1883
+      MQTT_PUBLISH_INTERVAL: 1
+    ports:
+      - "8001:8000"
+    depends_on:
+      postgres:
+        condition: service_healthy
+    volumes:
+      - .:/app
+    command: uvicorn main:app --host 0.0.0.0 --port 8000 --reload
+
+    networks:
+      - iot_net
+
+  # MQTT Broker (Mosquitto)
+
+  # MQTT Publisher Service (publier les données en continu)
+  mqtt_publisher:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: mqtt_publisher
+    environment:
+      DATABASE_URL: postgresql://user:password@postgres:5432/cloud_security_iot_devices
+      MQTT_BROKER_HOST: mosquitto_broker
+      MQTT_BROKER_PORT: 1883
+      MQTT_PUBLISH_INTERVAL: 1
+    depends_on:
+      postgres:
+        condition: service_healthy
+        # mosquitto_broker est lancé séparément, pas besoin de dépendance ici
+      device_management:
+        condition: service_started
+    volumes:
+      - .:/app
+    command: python mqtt_publisher_service.py
+
+    networks:
+      - iot_net
+
+volumes:
+  postgres_data:
+  mosquitto_data:
+  mosquitto_logs:
+
+networks:
+  iot_net:
+    external: true

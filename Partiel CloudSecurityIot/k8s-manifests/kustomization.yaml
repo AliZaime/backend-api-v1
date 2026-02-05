@@ -1,0 +1,26 @@
+apiVersion: kustomize.config.k8s.io/v1beta1
+kind: Kustomization
+
+# Ce fichier récapitule tous les composants du projet
+# Il permet de tout déployer avec la commande : kubectl apply -k .
+
+resources:
+  - config/app-config.yaml
+  - config/app-secrets.yaml
+  - databases/postgres-auth.yaml
+  - databases/postgres-mgmt.yaml
+  - databases/redis.yaml
+  - databases/mongodb.yaml
+  - messaging/rabbitmq.yaml
+  - services/auth-service.yaml
+  - services/device-management.yaml
+  - services/device-monitoring.yaml
+  - services/frontend.yaml
+  - services/frontend-html-config.yaml
+  - services/iot-simulator.yaml
+  - services/mqtt-consumer.yaml
+  - ingress/main-ingress.yaml
+  - monitoring/prometheus.yaml
+  - monitoring/grafana-provisioning.yaml
+  - monitoring/grafana.yaml
+  - monitoring/loki.yaml

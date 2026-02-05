@@ -1,0 +1,86 @@
+### 🌐 IOT GLOBAL SCENARIO - KUBERNETES EDITION
+### Verification du système via l'Ingress (Port 80)
+
+@GATEWAY = http://172.17.255.180
+@ADMIN_EMAIL = admin@admin.com
+@ADMIN_PWD = admin123!
+
+#################################################################
+### 1. BOOTSTRAP & AUTH (Ingress -> /auth/)
+#################################################################
+
+# @name adminLogin
+POST {{GATEWAY}}/auth/users/auth
+Content-Type: application/json
+
+{
+    "email": "{{ADMIN_EMAIL}}",
+    "password": "{{ADMIN_PWD}}"
+}
+
+###
+
+@adminToken = {{adminLogin.response.body.token}}
+
+#################################################################
+### 2. MANAGEMENT (Ingress -> /devices/)
+#################################################################
+
+### Voir tous les devices (Initialement vide ou avec devices existants)
+GET {{GATEWAY}}/devices/
+Authorization: Bearer {{adminToken}}
+
+###
+
+### Créer un device de test "Lenovo"
+# @name createDevice
+POST {{GATEWAY}}/devices/
+Content-Type: application/json
+Authorization: Bearer {{adminToken}}
+
+{
+    "name": "Lenovo K8s 2",
+    "type": "system",
+    "owner_id": 1,
+    "location": "Cluster-K8s"
+}
+
+###
+
+
+### Créer un device de test "Temp1"
+# @name createDevice
+POST {{GATEWAY}}/devices/
+Content-Type: application/json
+Authorization: Bearer {{adminToken}}
+
+{
+    "name": "Temp2",
+    "type": "Temperature",
+    "owner_id": 1,
+    "location": "maison1"
+}
+
+@deviceId = {{createDevice.response.body.id}}
+
+### Voir tous les devices (Vérifier que le nouveau est là)
+GET {{GATEWAY}}/devices/
+Authorization: Bearer {{adminToken}}
+
+###
+
+#################################################################
+### 3. MONITORING (Ingress -> /api/monitoring/)
+#################################################################
+
+### Voir les métriques du nouveau device (Attendre 5-10s après création)
+GET {{GATEWAY}}/api/monitoring/metrics/owner/1
+Authorization: Bearer {{adminToken}}
+
+###
+
+#################################################################
+### ✅ TEST FINAL : DASHBOARD TEMPS RÉEL
+#################################################################
+### Ouvrez votre navigateur sur : http://172.17.255.180/
+### Vous devriez voir "Lenovo K8s" apparaître dynamiquement !

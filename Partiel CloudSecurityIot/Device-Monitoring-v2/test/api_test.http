@@ -1,0 +1,16 @@
+### 📊 DEVICE MONITORING - LOCAL TESTS
+### Test direct sur le port 8002 (Ignorer la Gateway)
+
+@BASE_URL = http://localhost:8002
+
+# @name login
+### Note: Utilisez un token généré par le MS Auth
+@TOKEN = <votre_token_ici>
+@OWNER_ID = 1
+
+### Métriques par propriétaire
+GET {{BASE_URL}}/metrics/owner/{{OWNER_ID}}
+Authorization: Bearer {{TOKEN}}
+
+### Metrics Prometheus locales
+GET {{BASE_URL}}/metrics

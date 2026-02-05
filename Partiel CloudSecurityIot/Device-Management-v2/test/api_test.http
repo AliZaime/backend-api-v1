@@ -1,0 +1,26 @@
+### 🏗️ DEVICE MANAGEMENT - LOCAL TESTS
+### Test direct sur le port 8001 (Ignorer la Gateway)
+
+@BASE_URL = http://localhost:8001
+
+# @name login
+### Note: Utilisez un token généré par le MS Auth
+@TOKEN = <votre_token_ici>
+
+### Liste des devices
+GET {{BASE_URL}}/devices
+Authorization: Bearer {{TOKEN}}
+
+### Création d'un device
+POST {{BASE_URL}}/devices
+Content-Type: application/json
+Authorization: Bearer {{TOKEN}}
+
+{
+    "name": "Capteur Test Local",
+    "type": "temperature",
+    "owner_id": 1
+}
+
+### Metrics Prometheus locales
+GET {{BASE_URL}}/metrics

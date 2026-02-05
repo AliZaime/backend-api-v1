@@ -1,0 +1,2 @@
+-- La base de données est créée automatiquement par docker-compose
+-- Le schéma est créé automatiquement par SQLAlchemy (Base.metadata.create_all())

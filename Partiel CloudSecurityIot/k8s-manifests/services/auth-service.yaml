@@ -1,0 +1,59 @@
+apiVersion: v1
+kind: Service
+metadata:
+  name: auth-service
+spec:
+  ports:
+    - port: 8001
+      targetPort: 8001
+  selector:
+    app: auth-service
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: auth-service
+spec:
+  replicas: 3
+  selector:
+    matchLabels:
+      app: auth-service
+  template:
+    metadata:
+      labels:
+        app: auth-service
+      annotations:
+        prometheus.io/scrape: "true"
+        prometheus.io/port: "8001"
+        prometheus.io/path: "/metrics"
+    spec:
+      containers:
+        - name: auth-service
+          image: auth-ms:latest
+          imagePullPolicy: Never
+          ports:
+            - containerPort: 8001
+          envFrom:
+            - configMapRef:
+                name: app-config
+            - secretRef:
+                name: app-secrets
+          env:
+            - name: DATABASE_URL
+              valueFrom:
+                secretKeyRef:
+                  name: app-secrets
+                  key: DATABASE_URL_AUTH
+# Probes disabled as /health is missing in code
+#          livenessProbe:
+#            httpGet:
+#              path: /health
+#              port: 8001
+#            initialDelaySeconds: 10
+#            periodSeconds: 10
+#          readinessProbe:
+#            httpGet:
+#              path: /health
+#              port: 8001
+#            initialDelaySeconds: 5
+#            periodSeconds: 10

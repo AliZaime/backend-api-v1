@@ -1,0 +1,8 @@
+### Test simple
+POST http://localhost:8000/users/auth
+Content-Type: application/json
+
+{
+  "email": "user1@app.com",
+  "password": "123456"
+}

@@ -1,0 +1,23 @@
+### 🔐 AUTH SERVICE - LOCAL TESTS
+### Test direct sur le port 8000 (Ignorer la Gateway)
+
+@BASE_URL = http://localhost:8000
+
+# @name loginAdmin
+POST {{BASE_URL}}/users/auth
+Content-Type: application/json
+
+{
+    "email": "admin@admin.com",
+    "password": "admin123!"
+}
+
+### Token Admin
+@adminToken = {{loginAdmin.response.body.token}}
+
+### Liste des utilisateurs (Admin Only)
+GET {{BASE_URL}}/users/
+Authorization: Bearer {{adminToken}}
+
+### Metrics Prometheus locales
+GET {{BASE_URL}}/metrics

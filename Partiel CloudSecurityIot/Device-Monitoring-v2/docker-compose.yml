@@ -1,0 +1,47 @@
+version: "3.8"
+services:
+  monitoring_api:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: monitoring_api_v2
+    ports:
+      - "8002:8000"
+    environment:
+      - MONGO_URI=mongodb://mongo:27017
+      - MQTT_BROKER_HOST=mosquitto_broker
+      - MQTT_BROKER_PORT=1883
+      - JWT_SECRET=$$argon2id$$v=19$$m=65536,t=3,p=4$$hT18aCPZ5AFxQ2ncYkRkWg$$5UvBttA1brZmn6Bmf1T0NgKaYaqUzMV1pvWNxDp5pFc
+    depends_on:
+      - mongo
+    networks:
+      - iot_net
+  mongo:
+    image: mongo:6
+    container_name: mongo_monitoring_v2
+    ports:
+      - "27018:27017"
+    volumes:
+      - mongo_monitoring_data:/data/db
+    networks:
+      - iot_net
+  mqtt_consumer:
+    build:
+      context: .
+      dockerfile: Dockerfile.mqtt
+    container_name: mqtt_consumer_v2
+    environment:
+      - MONGO_URI=mongodb://mongo:27017
+      - MQTT_BROKER_HOST=mosquitto_broker
+      - MQTT_BROKER_PORT=1883
+      - MONITORING_API_URL=http://monitoring_api:8000
+    depends_on:
+      - mongo
+    networks:
+      - iot_net
+volumes:
+  mongo_monitoring_data:
+
+networks:
+  iot_net:
+    external: true

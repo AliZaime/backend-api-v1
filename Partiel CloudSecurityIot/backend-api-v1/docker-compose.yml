@@ -1,0 +1,39 @@
+services:
+  backend:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: auth-ms
+    environment:
+      - SERVER_DB=db
+      - NAME_DB=${NAME_DB-db_auth}
+    ports:
+      - 8000:8000
+    volumes:
+      - ./logs:/app/logs
+    networks:
+      - net-auth
+    depends_on:
+      db:
+        condition: service_healthy
+  db:
+    image: postgres:alpine
+    container_name: postgresql
+    environment:
+      - POSTGRES_USER=${USER_DB-admin}
+      - POSTGRES_PASSWORD=${PASSWORD_DB-1234}
+    ports:
+      - 5432:5432
+    networks:
+      - net-auth
+    volumes:
+      - ./init.sql:/docker-entrypoint-initdb.d/init.sql:ro
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${USER_DB-admin}"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+networks:
+  net-auth:
+    driver: bridge
+

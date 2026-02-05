@@ -1,0 +1,23 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: mqtt-consumer
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: mqtt-consumer
+  template:
+    metadata:
+      labels:
+        app: mqtt-consumer
+    spec:
+      containers:
+        - name: mqtt-consumer
+          image: monitoring-mqtt:latest
+          imagePullPolicy: Never
+          envFrom:
+            - configMapRef:
+                name: app-config
+            - secretRef:
+                name: app-secrets
